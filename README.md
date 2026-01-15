@@ -15,8 +15,6 @@ Transaction history via Etherscan (Ethereum-compatible chains)
 
 Portfolio management with holdings CRUD
 
-Real-time portfolio valuation in USD
-
 
 ### Engineering 
 
