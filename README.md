@@ -9,32 +9,32 @@ Built with Go using clean architecture principles and real blockchain data provi
 
 ### Core
 
-Live token pricing (multi-chain) via CoinGecko
+- Live token pricing (multi-chain) via CoinGecko
 
-Transaction history via Etherscan (Ethereum-compatible chains)
+- Transaction history via Etherscan (Ethereum-compatible chains)
 
-Portfolio management with holdings CRUD
+- Portfolio management with holdings CRUD
 
 
 ### Engineering 
 
-Clean modular architecture (handlers / services / repositories)
+- Clean modular architecture (handlers / services / repositories)
 
-Interface-based design with dependency injection
+- Interface-based design with dependency injection
 
-Caching with TTL (Redis)
+- Caching with TTL (Redis)
 
-Rate limiting and retry with exponential backoff
+- Rate limiting and retry with exponential backoff
 
-Graceful shutdown
+- Graceful shutdown
 
-Structured logging
+- Structured logging
 
-Swagger (OpenAPI) documentation
+- Swagger (OpenAPI) documentation
 
-Docker and docker-compose support
+- Docker and docker-compose support
 
-Comprehensive unit tests
+- Comprehensive unit tests
 ---
 
 ## Architecture Overview
@@ -52,13 +52,13 @@ External APIs (CoinGecko, Etherscan) / Cache
 
 ### Design Principles
 
-Separation of concerns (no business logic in handlers)
+- Separation of concerns (no business logic in handlers)
 
-Interfaces for testability and extensibility
+- Interfaces for testability and extensibility
 
-Explicit dependency wiring via AppContext
+- Explicit dependency wiring via AppContext
 
-Stateless API design
+- Stateless API design
 
 ### Codebase Structure
 ```text
