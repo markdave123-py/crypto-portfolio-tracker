@@ -9,11 +9,21 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 
 	"github.com/markdave123-py/crypto-portfolio-tracker/internal/transactions"
 )
 
 type mockTxService struct{}
+
+type txListResponse struct {
+	Success bool `json:"success"`
+	Data    struct {
+		Page  int                        `json:"page"`
+		Limit int                        `json:"limit"`
+		Items []transactions.Transaction `json:"items"`
+	} `json:"data"`
+}
 
 func (m *mockTxService) List(
 	ctx context.Context,
@@ -34,7 +44,7 @@ func (m *mockTxService) List(
 func TestTransactionsHandler_List(t *testing.T) {
 	r := chi.NewRouter()
 
-	handler := NewTransactionsHandler(&mockTxService{})
+	handler := NewTransactionsHandler(&mockTxService{}, zap.NewNop())
 	r.Get("/wallets/{wallet}/transactions", handler.List)
 
 	req := httptest.NewRequest(
@@ -48,9 +58,11 @@ func TestTransactionsHandler_List(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rec.Code)
 
-	var resp []transactions.Transaction
+	var resp txListResponse
 	err := json.Unmarshal(rec.Body.Bytes(), &resp)
 	require.NoError(t, err)
-	require.Len(t, resp, 1)
-	require.Equal(t, "tx1", resp[0].Hash)
+
+	require.True(t, resp.Success)
+	require.Len(t, resp.Data.Items, 1)
+	require.Equal(t, "tx1", resp.Data.Items[0].Hash)
 }

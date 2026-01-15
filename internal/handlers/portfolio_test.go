@@ -20,6 +20,11 @@ type mockPortfolioService struct {
 	view *portfolio.PortfolioView
 }
 
+type PortfolioResponseTest struct {
+	Success bool                    `json:"success"`
+	Data    portfolio.PortfolioView `json:"data"`
+}
+
 func (m *mockPortfolioService) Get(ctx context.Context, wallet string) (*portfolio.PortfolioView, error) {
 	return m.view, nil
 }
@@ -64,10 +69,10 @@ func TestGetPortfolioHandler(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rec.Code)
 
-	var resp portfolio.PortfolioView
+	var resp PortfolioResponseTest
 	err := json.NewDecoder(rec.Body).Decode(&resp)
 	require.NoError(t, err)
-	require.Equal(t, 1000.0, resp.TotalValueUSD)
+	require.Equal(t, 1000.0, resp.Data.TotalValueUSD)
 }
 
 func TestAddHoldingHandler(t *testing.T) {

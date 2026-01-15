@@ -6,15 +6,12 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/jackc/pgx/v5/pgxpool"
-
 	"github.com/markdave123-py/crypto-portfolio-tracker/internal/cache"
 	"github.com/markdave123-py/crypto-portfolio-tracker/internal/config"
 	"github.com/markdave123-py/crypto-portfolio-tracker/internal/portfolio"
 	"github.com/markdave123-py/crypto-portfolio-tracker/internal/pricing"
 	"github.com/markdave123-py/crypto-portfolio-tracker/internal/pricing/coingecko"
 	"github.com/markdave123-py/crypto-portfolio-tracker/internal/pricing/mock"
-	"github.com/markdave123-py/crypto-portfolio-tracker/internal/storage"
 	"github.com/markdave123-py/crypto-portfolio-tracker/internal/transactions"
 	"github.com/markdave123-py/crypto-portfolio-tracker/internal/transactions/etherscan"
 )
@@ -24,7 +21,6 @@ type AppContext struct {
 	Logger *zap.Logger
 
 	Cache              cache.CacheManager
-	DB                 *pgxpool.Pool
 	PricingService     *pricing.Service
 	TransactionService *transactions.Service
 	PortfolioService   portfolio.Service
@@ -33,11 +29,6 @@ type AppContext struct {
 func NewAppContext(ctx context.Context, cfg *config.Config, logger *zap.Logger, cache cache.CacheManager) (*AppContext, error) {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
-
-	db, err := storage.NewPostgres(ctx, cfg.DB, logger)
-	if err != nil {
-		return nil, err
-	}
 
 	cgClient := coingecko.NewClient(
 		cfg.CoinGecko.APIKey,
@@ -59,7 +50,7 @@ func NewAppContext(ctx context.Context, cfg *config.Config, logger *zap.Logger, 
 
 	etherscanClient := etherscan.NewClient(cfg.EtherScan.APIKey, cfg.EtherScan.BaseURL)
 	txRepo := etherscan.NewProvider(etherscanClient)
-	txService := transactions.NewService(txRepo)
+	txService := transactions.NewService(txRepo, logger)
 
 	// Hard coded snapshot from requirement
 	initial := []*portfolio.Portfolio{
@@ -88,17 +79,10 @@ func NewAppContext(ctx context.Context, cfg *config.Config, logger *zap.Logger, 
 		Config:             cfg,
 		Logger:             logger,
 		Cache:              cache,
-		DB:                 db,
 		PricingService:     pricingService,
 		TransactionService: txService,
 		PortfolioService:   portfolioService,
 	}
 
 	return appCtx, nil
-}
-
-func (a *AppContext) Close() {
-	if a.DB != nil {
-		a.DB.Close()
-	}
 }

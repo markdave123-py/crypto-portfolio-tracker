@@ -1,0 +1,377 @@
+basePath: /
+definitions:
+  handlers.AssetRequest:
+    properties:
+      chain:
+        type: string
+      contract_address:
+        type: string
+    type: object
+  handlers.ErrorResponse:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  handlers.PortfolioResponse:
+    properties:
+      data:
+        $ref: '#/definitions/portfolio.PortfolioView'
+      error:
+        type: string
+      message:
+        description: human-readable
+        type: string
+      status:
+        description: success | error
+        type: string
+    type: object
+  handlers.PriceAPIResponse:
+    properties:
+      data:
+        $ref: '#/definitions/handlers.PricesResponse'
+      error:
+        $ref: '#/definitions/handlers.ErrorResponse'
+      success:
+        type: boolean
+    type: object
+  handlers.PricesRequest:
+    properties:
+      assets:
+        items:
+          $ref: '#/definitions/handlers.AssetRequest'
+        type: array
+    type: object
+  handlers.PricesResponse:
+    properties:
+      prices:
+        additionalProperties:
+          format: float64
+          type: number
+        type: object
+    type: object
+  handlers.TransactionListResponse:
+    properties:
+      data:
+        properties:
+          items:
+            items:
+              $ref: '#/definitions/transactions.Transaction'
+            type: array
+          limit:
+            type: integer
+          page:
+            type: integer
+        type: object
+      success:
+        type: boolean
+    type: object
+  portfolio.Holding:
+    properties:
+      amount:
+        description: the amount owned
+        format: float64
+        type: number
+      chain:
+        description: ethereum, polygon, etc
+        type: string
+      contractAddress:
+        description: empty for native asset
+        type: string
+    type: object
+  portfolio.HoldingView:
+    properties:
+      amount:
+        format: float64
+        type: number
+      chain:
+        type: string
+      contractAddress:
+        type: string
+      priceUSD:
+        format: float64
+        type: number
+      valueUSD:
+        format: float64
+        type: number
+    type: object
+  portfolio.PortfolioView:
+    properties:
+      holdings:
+        items:
+          $ref: '#/definitions/portfolio.HoldingView'
+        type: array
+      totalValueUSD:
+        format: float64
+        type: number
+      wallet:
+        type: string
+    type: object
+  transactions.Direction:
+    enum:
+    - in
+    - out
+    type: string
+    x-enum-varnames:
+    - DirectionIn
+    - DirectionOut
+  transactions.Transaction:
+    properties:
+      amount:
+        format: float64
+        type: number
+      chain:
+        description: ethereum, polygon, etc
+        type: string
+      direction:
+        $ref: '#/definitions/transactions.Direction'
+      from:
+        type: string
+      hash:
+        description: on-chain tx hash
+        type: string
+      id:
+        description: internal ID (can be tx hash)
+        type: string
+      status:
+        $ref: '#/definitions/transactions.TransactionStatus'
+      timestamp:
+        type: string
+      to:
+        type: string
+      token:
+        description: ETH, USDC, WBTC, etc
+        type: string
+      tokenAddr:
+        description: empty for native ETH
+        type: string
+      type:
+        $ref: '#/definitions/transactions.TransactionType'
+    type: object
+  transactions.TransactionStatus:
+    enum:
+    - success
+    - failed
+    type: string
+    x-enum-varnames:
+    - StatusSuccess
+    - StatusFailed
+  transactions.TransactionType:
+    enum:
+    - send
+    - receive
+    - swap
+    - stake
+    type: string
+    x-enum-varnames:
+    - TypeSend
+    - TypeReceive
+    - TypeSwap
+    - TypeStake
+host: localhost:8080
+info:
+  contact:
+    email: nwaekwudavid@gmail.com
+    name: David Nwaekwu
+  description: API for tracking crypto portfolios, transactions, and prices
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Crypto Portfolio Tracker API
+  version: "1.0"
+paths:
+  /prices:
+    post:
+      consumes:
+      - application/json
+      description: Fetch USD prices for tokens by chain + contract address
+      parameters:
+      - description: Assets to price
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.PricesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.PriceAPIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get token prices
+      tags:
+      - Prices
+  /wallets/{wallet}/portfolio:
+    get:
+      description: Fetch wallet portfolio with live valuation
+      parameters:
+      - description: Wallet address
+        in: path
+        name: wallet
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.PortfolioResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get portfolio
+      tags:
+      - Portfolio
+  /wallets/{wallet}/portfolio/holdings:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Wallet address
+        in: path
+        name: wallet
+        required: true
+        type: string
+      - description: Holding
+        in: body
+        name: holding
+        required: true
+        schema:
+          $ref: '#/definitions/portfolio.Holding'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Delete holding
+      tags:
+      - Portfolio
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Wallet address
+        in: path
+        name: wallet
+        required: true
+        type: string
+      - description: Holding
+        in: body
+        name: holding
+        required: true
+        schema:
+          $ref: '#/definitions/portfolio.Holding'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Add holding
+      tags:
+      - Portfolio
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Wallet address
+        in: path
+        name: wallet
+        required: true
+        type: string
+      - description: Holding
+        in: body
+        name: holding
+        required: true
+        schema:
+          $ref: '#/definitions/portfolio.Holding'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Update holding
+      tags:
+      - Portfolio
+  /wallets/{wallet}/transactions:
+    get:
+      description: Fetch paginated transactions for a wallet
+      parameters:
+      - description: Wallet address
+        in: path
+        name: wallet
+        required: true
+        type: string
+      - description: Blockchain (ethereum)
+        in: query
+        name: chain
+        required: true
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: limit
+        type: integer
+      - description: Transaction type
+        in: query
+        name: type
+        type: string
+      - description: Transaction status
+        in: query
+        name: status
+        type: string
+      - description: Token symbol
+        in: query
+        name: token
+        type: string
+      - description: Start date RFC3339
+        in: query
+        name: start_date
+        type: string
+      - description: End date RFC3339
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.TransactionListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: List wallet transactions
+      tags:
+      - Transactions
+swagger: "2.0"

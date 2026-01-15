@@ -11,7 +11,6 @@ type Config struct {
 
 	CoinGecko CoinGeckoConfig
 	Redis     RedisConfig
-	DB        DBConfig
 	Pricing   PricingConfig
 	EtherScan EtherScanConfig
 }
@@ -20,12 +19,6 @@ type AppConfig struct {
 	Name string `env:"APP_NAME" envDefault:"crypto-portfolio"`
 	Env  string `env:"APP_ENV" envDefault:"local"`
 }
-
-// type RetryConfig struct {
-// 	MaxRetries int `env:"MAX_RETRIES" envDefault:"3"`
-// 	BaseDelay  int `env:"BASE_DELAY" envDefault:"500"`
-// 	MaxDelay   int `env:"MAX_DELAY" envDefault:"800"`
-// }
 
 type HTTPConfig struct {
 	Port string `env:"HTTP_PORT" envDefault:"8080"`
@@ -52,18 +45,6 @@ type EtherScanConfig struct {
 	APIKey  string `env:"ETHERSCAN_API_KEY,required"`
 	BaseURL string `env:"ETHERSCAN_BASE_URL" envDefault:"https://api.etherscan.io/v2/api"`
 }
-
-type DBConfig struct {
-	URL string `env:"DATABASE_URL"`
-}
-
-func (dbCfg *DBConfig) ConnectionString() string {
-	return dbCfg.URL
-}
-
-// func (retryCfg *RetryConfig) GetConfig() *RetryConfig {
-// 	return retryCfg
-// }
 
 func Load() (*Config, error) {
 	cfg := &Config{}

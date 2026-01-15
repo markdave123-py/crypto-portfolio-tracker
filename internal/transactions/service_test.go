@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 type mockRepository struct {
@@ -37,7 +38,7 @@ func TestService_List_WithFiltering(t *testing.T) {
 		},
 	}
 
-	svc := NewService(repo)
+	svc := NewService(repo, zap.NewNop())
 
 	f := Filters{
 		Type: ptrType(TypeSwap),

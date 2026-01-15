@@ -52,11 +52,10 @@ var serverCmd = &cobra.Command{
 		if err != nil {
 			logger.Fatal("failed-to-create-app-context", zap.Error(err))
 		}
-		defer appCtx.Close()
 
 		pricesHandler := handlers.NewPricesHandler(appCtx.PricingService, logger)
 
-		txHandler := handlers.NewTransactionsHandler(appCtx.TransactionService)
+		txHandler := handlers.NewTransactionsHandler(appCtx.TransactionService, logger)
 
 		portfolioHander := handlers.NewPortfolioHandler(appCtx.PortfolioService, logger)
 

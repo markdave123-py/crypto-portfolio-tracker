@@ -67,6 +67,7 @@ func (p *Provider) GetPrices(ctx context.Context, assets []pricing.AssetRef) (ma
 				}
 				var price float64
 
+				// resolving coingecko return type inconsistency
 				switch val := usdVal.(type) {
 				case float64:
 					price = val

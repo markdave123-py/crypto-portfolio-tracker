@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,6 +19,11 @@ import (
 type mockPricingService struct {
 	result map[pricing.AssetRef]float64
 	err    error
+}
+
+type pricesResponseTest struct {
+	Success bool           `json:"success"`
+	Data    PricesResponse `json:"data"`
 }
 
 func (m *mockPricingService) GetPrices(
@@ -57,12 +63,13 @@ func TestPricesHandler_GetPrices_Success(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rec.Code)
 
-	var resp PricesResponse
+	var resp pricesResponseTest
+	fmt.Println(string(rec.Body.Bytes()))
 	err := json.Unmarshal(rec.Body.Bytes(), &resp)
 	require.NoError(t, err)
 
-	require.Len(t, resp.Prices, 1)
-	require.Equal(t, 123.45, resp.Prices["ethereum:0xabc"])
+	require.Len(t, resp.Data.Prices, 1)
+	require.Equal(t, 123.45, resp.Data.Prices["ethereum:0xabc"])
 }
 
 func TestPricesHandler_GetPrices_InvalidJSON(t *testing.T) {

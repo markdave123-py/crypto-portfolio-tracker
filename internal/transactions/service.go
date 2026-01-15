@@ -3,6 +3,8 @@ package transactions
 import (
 	"context"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 type ServiceAPI interface {
@@ -17,11 +19,12 @@ type ServiceAPI interface {
 }
 
 type Service struct {
-	repo Repository
+	repo   Repository
+	logger *zap.Logger
 }
 
-func NewService(repo Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo Repository, logger *zap.Logger) *Service {
+	return &Service{repo: repo, logger: logger}
 }
 
 func (s *Service) List(
@@ -32,7 +35,9 @@ func (s *Service) List(
 	limit int,
 	filters Filters,
 ) ([]Transaction, error) {
-
+	s.logger.Info("list-transactions",
+		zap.String("wallet", wallet),
+	)
 	txs, err := s.repo.GetTransactions(ctx, chain, wallet, page, limit)
 	if err != nil {
 		return nil, err

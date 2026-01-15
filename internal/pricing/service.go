@@ -46,6 +46,7 @@ func (s *Service) GetPrices(
 	ctx context.Context,
 	assets []AssetRef,
 ) (map[AssetRef]float64, error) {
+	s.logger.Info("get-prices")
 
 	results := make(map[AssetRef]float64)
 	missing := make([]AssetRef, 0)
